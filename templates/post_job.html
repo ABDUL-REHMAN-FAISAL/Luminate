@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Post New Job - Luminate{% endblock %}
+
+{% block content %}
+<div class="container py-5"> <!-- Added container -->
+    <div class="content-card form-container"> <!-- Changed class and removed inline styles -->
+        <h2 class="mb-4">Post a New Job</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="title" class="form-label">Job Title:</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="required_skills" class="form-label">Required Skills (comma separated):</label>
+                <input type="text" class="form-control" id="required_skills" name="required_skills" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Job Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="salary_range" class="form-label">Salary Range:</label>
+                <input type="text" class="form-control" id="salary_range" name="salary_range" placeholder="e.g., $80,000 - $100,000">
+            </div>
+            <button type="submit" class="btn btn-primary">Post Job</button>
+        </form>
+    </div>
+</div> <!-- Closed container -->
+{% endblock %}

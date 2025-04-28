@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Schedule Interview</h2>
+<form method="POST">
+    <div>
+        <label for="slot_id">Select Interview Slot:</label>
+        <select id="slot_id" name="slot_id" required>
+            {% for slot in slots %}
+            <option value="{{ slot.id }}">{{ slot.start_time.strftime('%Y-%m-%d %H:%M') }} - {{ slot.end_time.strftime('%Y-%m-%d %H:%M') }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit">Schedule Interview</button>
+</form>
+{% if interview %}
+<hr>
+<h3>Interview Details</h3>
+<p>Status: {{ interview.status }}</p>
+<p>Meeting Link: {% if interview.meeting_link %}<a href="{{ interview.meeting_link }}" target="_blank">Join</a>{% else %}N/A{% endif %}</p>
+<p>Notes: {{ interview.notes or 'N/A' }}</p>
+{% endif %}
+{% endblock %}

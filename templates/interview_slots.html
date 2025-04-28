@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Manage Interview Slots</h2>
+<form method="POST">
+    <div>
+        <label for="start_time">Start Time:</label>
+        <input type="datetime-local" id="start_time" name="start_time" required>
+    </div>
+    <div>
+        <label for="end_time">End Time:</label>
+        <input type="datetime-local" id="end_time" name="end_time" required>
+    </div>
+    <button type="submit">Add Slot</button>
+</form>
+<hr>
+<h3>Your Interview Slots</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Booked</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for slot in slots %}
+        <tr>
+            <td>{{ slot.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ slot.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ 'Yes' if slot.is_booked else 'No' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

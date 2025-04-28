@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4 employee-dashboard-interactive">
+    <!-- Welcome Header -->
+    <div class="row mb-4 align-items-center animate-fade-in">
+        <div class="col-md-8">
+            <h1 class="fw-bold">Welcome, {{ user.username if user else 'Employee' }}!</h1>
+            <p class="text-muted">Your personal career management hub.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('profile') }}" class="btn btn-outline-primary shadow-sm">
+                <i class="bi bi-person-circle me-2"></i>View Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Stats Cards -->
+    <div class="row mb-3 g-3">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm interactive-card animate-pop-in" style="animation-delay: 0.1s;">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-check-fill display-4 text-success mb-3"></i>
+                    <h3 class="fw-bold text-success">{{ applications|length if applications else 0 }}</h3>
+                    <p class="card-text text-muted">Applications Submitted</p>
+                    <a href="#applications" class="btn btn-sm btn-outline-success mt-2">View Applications</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm interactive-card animate-pop-in" style="animation-delay: 0.2s;">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-week-fill display-4 text-info mb-3"></i>
+                    <h3 class="fw-bold text-info">{{ stats.interviews_scheduled if stats else 0 }}</h3>
+                    <p class="card-text text-muted">Upcoming Interviews</p>
+                    <a href="{{ url_for('interviews') }}" class="btn btn-sm btn-outline-info mt-2">Check Schedule</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm interactive-card animate-pop-in" style="animation-delay: 0.3s;">
+                <div class="card-body text-center">
+                    <i class="bi bi-bookmark-star-fill display-4 text-warning mb-3"></i>
+                    <h3 class="fw-bold text-warning">{{ stats.saved_jobs if stats else 0 }}</h3>
+                    <p class="card-text text-muted">Saved Jobs</p>
+                    <a href="#" class="btn btn-sm btn-outline-warning mt-2">Manage Saved Jobs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Feed -->
+    <div class="card shadow-sm mb-3 animate-fade-in" style="animation-delay: 0.4s;" id="activity">
+        <div class="card-header bg-light">
+            <h5 class="fw-bold mb-0"><i class="bi bi-activity me-2"></i>Recent Activity</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% if recent_activities %}
+                {% for activity in recent_activities %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if 'applied' in activity.type %}<i class="bi bi-send-check-fill text-primary me-2"></i> Applied for <strong>{{ activity.details.job_title }}</strong>
+                        {% elif 'interview' in activity.type %}<i class="bi bi-calendar-event text-info me-2"></i> Interview scheduled for <strong>{{ activity.details.job_title }}</strong>
+                        {% elif 'profile' in activity.type %}<i class="bi bi-person-badge text-warning me-2"></i> Profile updated
+                        {% else %}<i class="bi bi-info-circle text-secondary me-2"></i> {{ activity.description }}
+                        {% endif %}
+                    </div>
+                    <span class="text-muted small">{{ activity.timestamp | timesince }} ago</span>
+                </li>
+                {% endfor %}
+            {% else %}
+                <li class="list-group-item text-muted">No recent activity.</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- My Applications Section -->
+    <div class="card shadow-sm mb-3 animate-fade-in" style="animation-delay: 0.5s;" id="applications">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>My Applications</h5>
+            <a href="{{ url_for('job_search_home') }}" class="btn btn-sm btn-primary">Find New Jobs</a>
+        </div>
+        <div class="card-body">
+            {% if applications %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Date Applied</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td><a href="{{ url_for('job_info', job_id=app.job_id) }}">{{ app.job.title }}</a></td>
+                            <td>{{ app.job.company_name }}</td>
+                            <td>{{ app.application_date.strftime('%Y-%m-%d') }}</td>
+                            <td><span class="badge bg-{{ 'success' if app.status == 'Accepted' else ('warning' if app.status == 'Interviewing' else ('danger' if app.status == 'Rejected' else 'secondary')) }}">{{ app.status }}</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">View Details</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">You haven't applied for any jobs yet. <a href="{{ url_for('job_search_home') }}">Start searching now!</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+</div> <!-- Closed container -->
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }} <!-- Include scripts from base.html -->
+    <style>
+        /* Add simple styles for the interactive elements */
+        .employee-dashboard-interactive .interactive-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        /* Removed hover effect for simplicity */
+        /* .employee-dashboard-interactive .interactive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        } */
+        .animate-pop-in {
+            animation: popIn 0.5s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        .table th {
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        // Optional: Add any dashboard-specific JavaScript here
+        console.log("Employee dashboard loaded.");
+    </script>
+{% endblock %}

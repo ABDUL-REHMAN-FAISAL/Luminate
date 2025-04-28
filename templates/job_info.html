@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}Messaging - Luminate{% endblock %}
+
+{% block content %}
+<div class="container py-4"> <!-- Added container class -->
+    <!-- Messaging Interface -->
+    <div class="messaging-container">
+        <!-- Contacts Sidebar -->
+        <div class="contacts-sidebar">
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search messages...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contact List -->
+            <div class="contact-list">
+                {% for conversation in conversations %}
+                <div class="contact-item {% if loop.first %}active{% endif %}" data-conversation-id="{{ conversation.id }}">
+                    <div class="d-flex align-items-center">
+                        <div class="contact-avatar me-3">{{ conversation.company[:2] }}</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">{{ conversation.company }}</h6>
+                                <small class="text-muted">{{ conversation.last_updated.strftime('%I:%M %p') if conversation.last_updated.date() == today else conversation.last_updated.strftime('%b %d') }}</small>
+                            </div>
+                            {% if conversation.messages %}
+                            <p class="mb-0 text-truncate">{{ conversation.messages[-1].content }}</p>
+                            {% else %}
+                            <p class="mb-0 text-truncate">No messages yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 text-center">
+                    <p>No conversations yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Message Area -->
+        <div class="message-area">
+            <div class="message-header">
+                <div class="d-flex align-items-center">
+                    <div class="contact-avatar me-3" id="conversation-avatar">{% if conversations %}{{ conversations[0].company[:2] }}{% else %}--{% endif %}</div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" id="conversation-company">{% if conversations %}{{ conversations[0].company }}{% else %}No Conversation Selected{% endif %}</h5>
+                        <small class="text-muted" id="conversation-status">{% if conversations %}Last active: Just now{% else %}&nbsp;{% endif %}</small>
+                    </div>
+                    <div class="ms-auto">
+                        <button class="btn btn-outline-primary btn-sm me-2">
+                            <i class="bi bi-telephone-fill me-1"></i>Call
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar-event me-1"></i>Schedule
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-list" id="message-list">
+                <!-- Messages will be loaded here dynamically -->
+                <div class="d-flex justify-content-center align-items-center h-100" id="no-messages">
+                    <p class="text-muted">{% if conversations %}Select a conversation to view messages{% else %}No messages yet{% endif %}</p>
+                </div>
+            </div>
+            
+            <div class="message-input">
+                <form id="message-form">
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-paperclip"></i>
+                        </button>
+                        <input type="text" class="form-control" id="message-input" placeholder="Type a message..." required>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+
+    </div>
+</div> <!-- Closed container -->
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }} <!-- Include scripts from base.html -->
+    <script>
+        // Add messaging-specific JavaScript here if needed
+        // Example: Handling contact selection and message sending
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactItems = document.querySelectorAll('.contact-item');
+            const messageList = document.getElementById('message-list');
+            const noMessages = document.getElementById('no-messages');
+            const conversationAvatar = document.getElementById('conversation-avatar');
+            const conversationCompany = document.getElementById('conversation-company');
+            const conversationStatus = document.getElementById('conversation-status');
+            const messageForm = document.getElementById('message-form');
+            const messageInput = document.getElementById('message-input');
+            let currentConversationId = null;
+
+            if (contactItems.length > 0) {
+                currentConversationId = contactItems[0].dataset.conversationId;
+                loadMessages(currentConversationId);
+                updateHeader(contactItems[0]);
+            }
+
+            contactItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    contactItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    currentConversationId = this.dataset.conversationId;
+                    loadMessages(currentConversationId);
+                    updateHeader(this);
+                });
+            });
+
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const messageContent = messageInput.value.trim();
+                if (messageContent && currentConversationId) {
+                    sendMessage(currentConversationId, messageContent);
+                    messageInput.value = '';
+                }
+            });
+
+            function updateHeader(contactItem) {
+                const avatar = contactItem.querySelector('.contact-avatar').textContent;
+                const company = contactItem.querySelector('h6').textContent;
+                // Status update logic might be more complex
+                conversationAvatar.textContent = avatar;
+                conversationCompany.textContent = company;
+                conversationStatus.textContent = 'Online'; // Placeholder
+            }
+
+            function loadMessages(conversationId) {
+                // Placeholder: Fetch messages via AJAX
+                console.log(`Loading messages for conversation ${conversationId}`);
+                // Simulate loading
+                messageList.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">Loading messages...</p></div>';
+                setTimeout(() => {
+                    // Replace with actual message rendering logic
+                    if (conversationId === '1') { // Example ID
+                         messageList.innerHTML = `
+                            <div class="message received">
+                                <div class="message-bubble">Hi there! We reviewed your application.</div>
+                                <small class="message-time">10:30 AM</small>
+                            </div>
+                            <div class="message sent">
+                                <div class="message-bubble">Great! What are the next steps?</div>
+                                <small class="message-time">10:32 AM</small>
+                            </div>
+                         `;
+                    } else {
+                        messageList.innerHTML = '<div class="d-flex justify-content-center align-items-center h-100" id="no-messages"><p class="text-muted">No messages in this conversation yet.</p></div>';
+                    }
+                    if (noMessages) noMessages.style.display = 'none';
+                }, 500);
+            }
+
+            function sendMessage(conversationId, content) {
+                // Placeholder: Send message via AJAX
+                console.log(`Sending message to ${conversationId}: ${content}`);
+                // Simulate adding message locally
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', 'sent');
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">${content}</div>
+                    <small class="message-time">Just now</small>
+                `;
+                // Remove 'no messages' placeholder if present
+                const noMsgPlaceholder = messageList.querySelector('#no-messages');
+                if (noMsgPlaceholder) {
+                    noMsgPlaceholder.remove();
+                }
+                messageList.appendChild(messageDiv);
+                messageList.scrollTop = messageList.scrollHeight; // Scroll to bottom
+            }
+        });
+    </script>
+{% endblock %}

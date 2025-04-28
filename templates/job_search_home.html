@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Job Search Home{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <h1 class="display-4 fw-bold mb-4">Find Your Next Opportunity</h1>
+    <p class="lead mb-5">Explore thousands of job openings and take the next step in your career.</p>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <form action="{{ url_for('jobs') }}" method="GET" class="d-flex">
+                <input type="text" name="q" class="form-control form-control-lg me-2" placeholder="Search by job title, company, or skills...">
+                <button type="submit" class="btn btn-primary btn-lg">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="content-card p-4 h-100">
+                <i class="bi bi-binoculars-fill display-4 text-primary mb-3"></i>
+                <h5 class="fw-bold">Advanced Search</h5>
+                <p>Refine your search with filters for location, salary, and job type.</p>
+                <a href="{{ url_for('jobs') }}" class="btn btn-outline-primary">Explore Filters</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="content-card p-4 h-100">
+                <i class="bi bi-building display-4 text-success mb-3"></i>
+                <h5 class="fw-bold">Top Companies</h5>
+                <p>Discover job openings from leading companies in various industries.</p>
+                {# Add link to a potential company directory page if available #}
+                <a href="#" class="btn btn-outline-success">View Companies</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="content-card p-4 h-100">
+                <i class="bi bi-lightbulb-fill display-4 text-warning mb-3"></i>
+                <h5 class="fw-bold">Career Advice</h5>
+                <p>Get tips on resume building, interviews, and career growth.</p>
+                 {# Add link to a potential career advice section if available #}
+                <a href="#" class="btn btn-outline-warning">Read Articles</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h3 class="fw-bold mb-4">Featured Jobs</h3>
+        {# Placeholder for featured jobs - dynamically load these if possible #}
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">Software Engineer</h6>
+                        <p class="card-text text-muted">Tech Solutions Inc.</p>
+                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">Marketing Manager</h6>
+                        <p class="card-text text-muted">Creative Agency</p>
+                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">Data Analyst</h6>
+                        <p class="card-text text-muted">Finance Corp</p>
+                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="{{ url_for('jobs') }}" class="btn btn-link mt-3">See all jobs</a>
+    </div>
+
+</div>
+{% endblock %}

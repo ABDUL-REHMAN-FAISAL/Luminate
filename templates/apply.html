@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Apply for Job - Luminate{% endblock %}
+
+{% block content %}
+<div class="container py-5"> <!-- This container is already present, ensuring consistency -->
+    <div class="content-card form-container"> <!-- Changed class and removed inline styles -->
+        <h2 class="text-center mb-4">Apply for Jobs</h2>
+        <form action="{{ url_for('submit_application', job_id=1) }}" method="POST" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="fullName" name="fullName" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="resume" class="form-label">Upload Resume</label>
+                <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                <div class="form-text">Accepted formats: PDF, DOC, DOCX</div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="coverLetter" class="form-label">Cover Letter</label>
+                <textarea class="form-control" id="coverLetter" name="coverLetter" rows="5" required></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label for="portfolio" class="form-label">Portfolio URL (Optional)</label>
+                <input type="url" class="form-control" id="portfolio" name="portfolio">
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -79,4 +79,3 @@ Luminate is a modern job matching platform that connects job seekers with releva
 - Advanced skill matching algorithms
 - Employer dashboard
 - Interview scheduling
-- Messaging system between employers and candidates

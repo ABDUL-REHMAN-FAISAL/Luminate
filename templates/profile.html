@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luminate - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body> <!-- Removed bg-light, rely on styles.css -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('applications') }}">Luminate</a> <!-- Changed href to applications route -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('applications') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a> <!-- Changed href to applications route -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('jobs') }}"><i class="bi bi-briefcase-fill me-2"></i>Jobs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('interviews') }}"><i class="bi bi-calendar-event me-2"></i>Interviews</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('profile') }}"><i class="bi bi-person-circle me-2"></i>Profile</a>
+                    </li>
+                </ul>
+                 <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary ms-3">Logout</a> <!-- Added Logout button -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5"> <!-- This container is already present, ensuring consistency -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="content-card text-center"> <!-- Changed class -->
+                    <div class="mb-4 position-relative">
+                        <img src="{{ user.avatar or url_for('static', filename='images/default-avatar.png') }}" alt="Profile Picture" class="rounded-circle" width="150" height="150" style="object-fit: cover;">
+                        <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form">
+                            <input type="file" name="avatar" id="avatar-input" class="d-none" accept="image/*">
+                            <button type="button" class="btn btn-outline-primary mt-3" onclick="document.getElementById('avatar-input').click()">Change Profile Picture</button>
+                        </form>
+                    </div>
+                    <h3>{{ user.name }}</h3>
+                    <p class="text-muted">{{ user.title }}</p>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="content-card"> <!-- Changed class -->
+                    <h4 class="mb-4">Personal Information</h4>
+                    <form action="{{ url_for('update_profile') }}" method="POST">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" name="name" value="{{ user.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Professional Title</label>
+                                <input type="text" class="form-control" name="title" value="{{ user.title }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="phone" value="{{ user.phone }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" name="location" value="{{ user.location }}">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+                
+                <div class="content-card"> <!-- Changed class -->
+                    <h4 class="mb-4">Skills</h4>
+                    <div class="mb-3">
+                        {% if user.skills %}
+                            {% for skill in user.skills.split(',') %}
+                            <span class="skill-badge">{{ skill }}
+                                <button class="btn btn-link btn-sm text-danger p-0 ms-2" onclick="removeSkill('{{ skill }}')">×</button>
+                            </span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <form class="d-flex" action="{{ url_for('add_skill') }}" method="POST">
+                        <input type="text" class="form-control me-2" name="skill" placeholder="Add a new skill">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+                
+                <div class="content-card"> <!-- Changed class -->
+                    <h4 class="mb-4">Resume</h4>
+                    <form action="{{ url_for('upload_resume') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Upload Resume</label>
+                            <input type="file" class="form-control" name="resume" accept=".pdf,.doc,.docx">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Handle profile picture upload
+        document.getElementById('avatar-input').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                document.getElementById('avatar-form').submit();
+            }
+        });
+
+        // Handle skill removal with confirmation
+        function removeSkill(skill) {
+            if (confirm('Are you sure you want to remove this skill?')) {
+                fetch('/remove_skill', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ skill: skill })
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

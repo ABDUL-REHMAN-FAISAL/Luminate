@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5"> <!-- Added container class -->
+    <div class="content-card"> <!-- Added content-card wrapper -->
+        <h2>Applications for {{ job.title }}</h2>
+        <table class="table table-striped"> <!-- Added Bootstrap table classes -->
+    <thead>
+        <tr>
+            <th>Applicant</th>
+            <th>Status</th>
+            <th>Date Applied</th>
+            <th>Resume</th>
+            <th>Cover Letter</th>
+            <th>Portfolio</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for application in applications %}
+        <tr>
+            <td>{{ application.user.name }}</td>
+            <td>{{ application.status }}</td>
+            <td>{{ application.date_applied.strftime('%Y-%m-%d') }}</td>
+            <td>{% if application.resume_path %}<a href="/{{ application.resume_path }}" target="_blank">Download</a>{% else %}N/A{% endif %}</td>
+            <td>{% if application.cover_letter %}<a href="#" onclick="alert('{{ application.cover_letter|escape }}')">View</a>{% else %}N/A{% endif %}</td>
+            <td>{% if application.portfolio_url %}<a href="{{ application.portfolio_url }}" target="_blank">Portfolio</a>{% else %}N/A{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div> <!-- Closed content-card -->
+</div> <!-- Closed container -->
+{% endblock %}

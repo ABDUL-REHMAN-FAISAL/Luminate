@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}My Interviews - Luminate{% endblock %}
+
+{% block content %}
+<div class="container py-5"> <!-- Added container class with padding -->
+    <h1 class="mb-4">My Interviews</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if interviews %}
+        <div class="list-group">
+            {% for interview in interviews %}
+                <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Interview for {{ interview.application.job.title }}</h5>
+                        <small>Status: {{ interview.status }}</small>
+                    </div>
+                    <p class="mb-1">Scheduled Time: {{ interview.slot.start_time.strftime('%Y-%m-%d %H:%M') }} - {{ interview.slot.end_time.strftime('%H:%M') }}</p>
+                    {% if interview.meeting_link %}
+                        <p class="mb-1">Meeting Link: <a href="{{ interview.meeting_link }}" target="_blank">{{ interview.meeting_link }}</a></p>
+                    {% endif %}
+                    {% if interview.notes %}
+                        <p class="mb-1">Notes: {{ interview.notes }}</p>
+                    {% endif %}
+                    <!-- Add more details or actions as needed -->
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You have no scheduled interviews at the moment.</p>
+    {% endif %}
+
+    <!-- Placeholder for employer view or actions -->
+    {% if user.is_employer %}
+        <p class="mt-4"><em>Employer-specific interview management features will appear here.</em></p>
+        <!-- Example: Link to manage slots -->
+        <a href="{{ url_for('manage_slots') }}" class="btn btn-secondary mt-2">Manage Availability Slots</a>
+    {% endif %}
+
+</div>
+</div> <!-- Closed container -->
+{% endblock %}

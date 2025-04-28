@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Home - Luminate{% endblock %}
+
+{% block content %}
+<div class="landing-hero d-flex flex-column align-items-center justify-content-center text-center py-5" style="min-height: 70vh; background: linear-gradient(120deg, #f3e8ff 0%, #e0e7ff 100%);">
+    <div class="brand-logo mb-3">
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight:700; font-size:2.5rem; color:#8B5CF6; letter-spacing:2px;">Luminate</span>
+    </div>
+    <h1 style="font-family: 'Space Grotesk', serif; font-size:3.5rem; font-weight:700; color:#222; margin-bottom:1rem;">
+        Find what's next
+    </h1>
+    <p style="font-family: 'Space Grotesk', sans-serif; font-size:1.5rem; color:#374151; max-width:600px; margin-bottom:2rem;">
+        Shine brighter in your career journey. Discover, connect, and land your dream job with Luminate – where opportunities sparkle and your story begins!
+    </p>
+    <div class="d-flex gap-3 justify-content-center mb-4">
+        <a href="{{ url_for('register') }}" class="btn btn-dark btn-lg px-4" style="font-family: 'Space Grotesk', sans-serif; font-weight:600;">Find your next job</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-dark btn-lg px-4" style="font-family: 'Space Grotesk', sans-serif; font-weight:600;">Log In</a>
+    </div>
+    <div class="fun-intro mt-4" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem; color:#6B7280;">
+        <span>✨ Ready to light up your future? Let Luminate guide you to the next big thing! ✨</span>
+    </div>
+</div>
+<div class="container py-5">
+    <h2 class="text-center mb-4" style="font-family: 'Space Grotesk', sans-serif; font-weight:700; color:#222;">Where startups and job seekers connect</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex flex-wrap gap-3 justify-content-center mb-4">
+                <span class="badge bg-light text-dark shadow-sm px-4 py-2" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem;">AI Engineers</span>
+                <span class="badge bg-light text-dark shadow-sm px-4 py-2" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem;">Product Designers</span>
+                <span class="badge bg-light text-dark shadow-sm px-4 py-2" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem;">Full Stack Devs</span>
+                <span class="badge bg-light text-dark shadow-sm px-4 py-2" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem;">Startups</span>
+                <span class="badge bg-light text-dark shadow-sm px-4 py-2" style="font-family: 'Space Grotesk', sans-serif; font-size:1.1rem;">Unicorns</span>
+            </div>
+            <div class="card border-0 shadow-sm p-4 text-center" style="font-family: 'Space Grotesk', sans-serif;">
+                <h4 class="mb-3" style="font-weight:600;">Find and apply to exciting opportunities from early-stage startups and the unicorns you know and love!</h4>
+                <p class="text-muted">Luminate brings you closer to the teams building tomorrow. Upload your resume, explore trending skills, and let your talent shine!</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
