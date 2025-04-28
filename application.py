@@ -4,6 +4,8 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
 
+from app import Job, Application, Activity, User
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
