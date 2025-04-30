@@ -12,37 +12,44 @@
                 <div class="row">
                     <div class="col-md-4 text-center mb-4">
                         <div class="avatar-container">
+                            {% if user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" alt="Profile" class="avatar-image">
+                            {% else %}
                             <img src="https://api.dicebear.com/6.x/avataaars/svg?seed={{ user.id }}" alt="Profile" class="avatar-image">
-                            <div class="avatar-edit">
+                            {% endif %}
+                            <label for="profile_image" class="avatar-edit">
                                 <i class="bi bi-pencil"></i>
-                            </div>
+                            </label>
                         </div>
+                        <input type="file" class="form-control d-none" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/jpg">
+                        <small class="text-muted d-block mb-3">Click the edit button to upload profile picture</small>
+
                         <div class="mb-3">
-                            <label for="resume" class="form-label">Resume</label>
-                            <input type="file" class="form-control" id="resume" name="resume">
+                            <label for="resume" class="form-label">Resume (PDF, DOC, DOCX only)</label>
+                            <input type="file" class="form-control" id="resume" name="resume" accept=".pdf,.doc,.docx">
                             {% if user.resume_path %}
-                                <small class="text-muted">You have a resume uploaded.</small>
+                                <small class="text-muted">You have a resume uploaded: <a href="{{ url_for('static', filename='uploads/' + user.resume_path) }}" target="_blank">View Resume</a></small>
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="col-md-8">
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                         </div>
-                        
+
                         {% if not user.is_employer %}
                         <div class="mb-3">
                             <label for="title" class="form-label">Professional Title</label>
                             <input type="text" class="form-control" id="title" name="title" value="{{ user.title or '' }}" placeholder="e.g. Software Engineer">
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="skills" class="form-label">Skills (comma-separated)</label>
                             <textarea class="form-control" id="skills" name="skills" rows="2" placeholder="e.g. JavaScript, Python, Design, Communication">{{ user.skills or '' }}</textarea>
@@ -54,17 +61,17 @@
                             <input type="text" class="form-control" id="company" name="company" value="{{ user.company or '' }}">
                         </div>
                         {% endif %}
-                        
+
                         <div class="mb-3">
                             <label for="phone" class="form-label">Phone Number</label>
                             <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone or '' }}">
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="location" class="form-label">Location</label>
                             <input type="text" class="form-control" id="location" name="location" value="{{ user.location or '' }}" placeholder="e.g. San Francisco, CA">
                         </div>
-                        
+
                         <div class="text-end">
                             <button type="submit" class="btn btn-primary">Update Profile</button>
                         </div>
@@ -74,4 +81,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Profile image upload handling
+        const profileImageInput = document.getElementById('profile_image');
+        const avatarEdit = document.querySelector('.avatar-edit');
+        const avatarImage = document.querySelector('.avatar-image');
+
+        avatarEdit.addEventListener('click', function() {
+            profileImageInput.click();
+        });
+
+        profileImageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImage.src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+</script>
 {% endblock %}

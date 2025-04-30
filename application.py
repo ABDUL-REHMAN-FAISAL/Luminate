@@ -31,6 +31,7 @@ class User(db.Model):
     location = db.Column(db.String(100))
     skills = db.Column(db.String(500))
     resume_path = db.Column(db.String(200))
+    profile_image = db.Column(db.String(200))  # Added for profile image
     jobs = db.relationship('Job', backref='employer', lazy=True)
     applications = db.relationship('Application', backref='applicant', lazy=True)
     activities = db.relationship('Activity', backref='user', lazy=True)
@@ -93,8 +94,10 @@ class Interview(db.Model):
 
 
 # Helper Functions
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+def allowed_file(filename, allowed_extensions=None):
+    if allowed_extensions is None:
+        allowed_extensions = app.config['ALLOWED_EXTENSIONS']
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 
 def create_activity(user_id, message, job_id=None):
@@ -281,6 +284,26 @@ def view_applications(job_id):
     return render_template('view_applications.html', job=job, applications=applications)
 
 
+@app.route('/analytics')
+def analytics():
+    if 'user_id' not in session or not session.get('is_employer'):
+        flash('Please login as employer', 'danger')
+        return redirect(url_for('login'))
+
+    employer = User.query.get(session['user_id'])
+    jobs = Job.query.filter_by(employer_id=employer.id).all()
+
+    # Get total applications across all jobs
+    total_applications = 0
+    for job in jobs:
+        total_applications += len(job.applications)
+
+    return render_template('analytics.html',
+                           employer=employer,
+                           jobs=jobs,
+                           total_applications=total_applications)
+
+
 # Job Seeker Routes
 @app.route('/dashboard')
 def dashboard():
@@ -356,7 +379,7 @@ def apply(job_id):
         if 'resume' in request.files and request.files['resume'].filename:
             file = request.files['resume']
             if file and allowed_file(file.filename):
-                filename = secure_filename(f"{user.id}_{file.filename}")
+                filename = secure_filename(f"resume_{user.id}_{file.filename}")
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 resume_path = filename
@@ -399,11 +422,20 @@ def profile():
         user.location = request.form.get('location')
         user.skills = request.form.get('skills')
 
+        # Profile image upload handling
+        if 'profile_image' in request.files and request.files['profile_image'].filename:
+            profile_image = request.files['profile_image']
+            if profile_image and allowed_file(profile_image.filename, ['jpg', 'jpeg', 'png']):
+                filename = secure_filename(f"profile_{user.id}_{profile_image.filename}")
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                profile_image.save(file_path)
+                user.profile_image = filename
+
         # Resume upload handling
         if 'resume' in request.files and request.files['resume'].filename:
             file = request.files['resume']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(f"{user.id}_{file.filename}")
+            if file and allowed_file(file.filename, ['pdf', 'doc', 'docx']):
+                filename = secure_filename(f"resume_{user.id}_{file.filename}")
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 user.resume_path = filename

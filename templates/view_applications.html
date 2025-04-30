@@ -91,7 +91,7 @@
                                                             </span>
                                                         </p>
                                                         {% if application.resume_path %}
-                                                            <p><strong>Resume:</strong> <a href="#">Download Resume</a></p>
+                                                            <p><strong>Resume:</strong> <a href="{{ url_for('static', filename='uploads/' + application.resume_path) }}" target="_blank">Download Resume</a></p>
                                                         {% endif %}
                                                     </div>
                                                 </div>

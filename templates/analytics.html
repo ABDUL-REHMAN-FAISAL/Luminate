@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics | Luminate{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb" class="animate-fade-in">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('employer_dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+            </ol>
+        </nav>
+        
+        <div class="content-card animate-fade-in">
+            <h1 class="h3 mb-4">Job Analytics</h1>
+            
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="border rounded p-3 text-center">
+                        <h4 class="h5 mb-1">Total Jobs</h4>
+                        <p class="display-5 fw-bold text-purple mb-0">{{ jobs|length }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="border rounded p-3 text-center">
+                        <h4 class="h5 mb-1">Total Applications</h4>
+                        <p class="display-5 fw-bold text-purple mb-0">{{ total_applications }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="border rounded p-3 text-center">
+                        <h4 class="h5 mb-1">Average Applications</h4>
+                        <p class="display-5 fw-bold text-purple mb-0">{{ (total_applications / jobs|length)|round(1) if jobs|length > 0 else 0 }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8 mb-4">
+                    <div class="card p-3">
+                        <h5 class="mb-3">Applications per Job</h5>
+                        <canvas id="applicationsPerJobChart" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3">
+                        <h5 class="mb-3">Application Status</h5>
+                        <canvas id="applicationStatusChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive mt-4">
+                <h4 class="mb-3">Job Performance Summary</h4>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Posted Date</th>
+                            <th>Total Applications</th>
+                            <th>Conversion Rate</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                            <tr>
+                                <td>{{ job.title }}</td>
+                                <td>{{ job.date_posted.strftime('%b %d, %Y') }}</td>
+                                <td>{{ job.applications|length }}</td>
+                                <td>
+                                    {% set views = 100 * (job.id % 5 + 1) %}  <!-- Mock view count for demo -->
+                                    {% set conversion = (job.applications|length / views * 100)|round(1) if views > 0 else 0 %}
+                                    {{ conversion }}%
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Applications per Job Chart
+        const jobTitles = [{% for job in jobs %}'{{ job.title }}'{% if not loop.last %}, {% endif %}{% endfor %}];
+        const applicationCounts = [{% for job in jobs %}{{ job.applications|length }}{% if not loop.last %}, {% endif %}{% endfor %}];
+        
+        const ctx1 = document.getElementById('applicationsPerJobChart').getContext('2d');
+        const applicationsPerJobChart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: jobTitles,
+                datasets: [{
+                    label: 'Number of Applications',
+                    data: applicationCounts,
+                    backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    borderColor: 'rgba(139, 92, 246, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Application Status Chart
+        // Calculate statuses from all applications
+        let pending = 0, reviewing = 0, accepted = 0, rejected = 0, interviewed = 0;
+        
+        {% for job in jobs %}
+            {% for app in job.applications %}
+                {% if app.status == 'Pending' %}
+                    pending++;
+                {% elif app.status == 'Reviewing' %}
+                    reviewing++;
+                {% elif app.status == 'Accepted' %}
+                    accepted++;
+                {% elif app.status == 'Rejected' %}
+                    rejected++;
+                {% elif app.status == 'Interview Scheduled' %}
+                    interviewed++;
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        
+        const ctx2 = document.getElementById('applicationStatusChart').getContext('2d');
+        const applicationStatusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'Reviewing', 'Interview', 'Accepted', 'Rejected'],
+                datasets: [{
+                    data: [pending, reviewing, interviewed, accepted, rejected],
+                    backgroundColor: [
+                        '#FFC107',
+                        '#0D6EFD',
+                        '#6C757D',
+                        '#198754',
+                        '#DC3545'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
