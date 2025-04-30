@@ -20,22 +20,26 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if 'user_id' in session %}
-                        {% if session.get('role') == 'employee' %}
-                            <!-- Removed original Home/Job Search link, Dashboard acts as the primary entry now -->
+                        {# Corrected session check to use is_employer boolean #}
+                        {% if not session.get('is_employer') %}
+                            <!-- Job Seeker Links -->
                             <li class="nav-item">
+                                {# The route is /dashboard, function name is dashboard #}
                                 <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                             </li>
                              <li class="nav-item">
-                                <a class="nav-link {% if request.endpoint == 'job_search_home' %}active{% endif %}" href="{{ url_for('job_search_home') }}"><i class="bi bi-search me-2"></i>Job Search</a>
+                                {# Corrected url_for to use the function name 'dashboard' which renders job_search_home.html #}
+                                <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><i class="bi bi-search me-2"></i>Job Search</a>
                             </li>
                             <li class="nav-item">
+                                {# Link to non-existent interviews route - consider removing or implementing #}
                                 <a class="nav-link {% if request.endpoint == 'interviews' %}active{% endif %}" href="{{ url_for('interviews') }}"><i class="bi bi-calendar-event me-2"></i>Interviews</a>
                             </li>
-                            <!-- Removed duplicate Jobs link -->
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="{{ url_for('profile') }}"><i class="bi bi-person-circle me-2"></i>Profile</a>
                             </li>
-                        {% elif session.get('role') == 'employer' %}
+                        {% elif session.get('is_employer') %}
+                            <!-- Employer Links -->
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'employer_dashboard' %}active{% endif %}" href="{{ url_for('employer_dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                             </li>

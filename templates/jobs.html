@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Job Listings - Luminate{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Job Listings</h1>
+
+    {# Add search/filter form if needed - similar to job_search_home #}
+    <form action="{{ url_for('jobs') }}" method="GET" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search jobs..." value="{{ request.args.get('q', '') }}">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </div>
+        {# Add more filters here if desired (location, type, etc.) #}
+    </form>
+
+    {% if jobs %}
+        <div class="list-group">
+            {% for job in jobs %}
+                <a href="{{ url_for('apply', job_id=job.id) }}" class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm content-card">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1 fw-bold">{{ job.title }}</h5>
+                        <small class="text-muted">{{ (datetime.utcnow() - job.date_posted).days }} days ago</small>
+                    </div>
+                    <p class="mb-1">{{ job.company }} - {{ job.location }}</p>
+                    <small class="text-muted">Skills: {{ job.required_skills }}</small>
+                    {# Optionally display salary #}
+                    {% if job.salary %}
+                        <p class="mb-1"><small>Salary: {{ job.salary }}</small></p>
+                    {% endif %}
+                    {# Optionally display short description #}
+                    {# <p class="mb-1">{{ job.description[:100] }}...</p> #}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No jobs found matching your criteria.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

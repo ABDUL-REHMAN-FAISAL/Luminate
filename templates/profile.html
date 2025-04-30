@@ -12,16 +12,19 @@
 <body> <!-- Removed bg-light, rely on styles.css -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('applications') }}">Luminate</a> <!-- Changed href to applications route -->
+            {# Corrected navbar brand link to point to dashboard #}
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('dashboard') }}">Luminate</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('applications') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a> <!-- Changed href to applications route -->
+                        {# Corrected dashboard link #}
+                        <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-grid-1x2-fill me-2"></i>Dashboard</a>
                     </li>
                     <li class="nav-item">
+                        {# Link to jobs route (assuming it will be created or exists elsewhere) #}
                         <a class="nav-link" href="{{ url_for('jobs') }}"><i class="bi bi-briefcase-fill me-2"></i>Jobs</a>
                     </li>
                     <li class="nav-item">
@@ -41,11 +44,12 @@
             <div class="col-md-4">
                 <div class="content-card text-center"> <!-- Changed class -->
                     <div class="mb-4 position-relative">
-                        <img src="{{ user.avatar or url_for('static', filename='images/default-avatar.png') }}" alt="Profile Picture" class="rounded-circle" width="150" height="150" style="object-fit: cover;">
-                        <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form">
+                        {# Default avatar shown, upload functionality commented out as route doesn't exist #}
+                        <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Profile Picture" class="rounded-circle" width="150" height="150" style="object-fit: cover;">
+                        {# <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data" id="avatar-form">
                             <input type="file" name="avatar" id="avatar-input" class="d-none" accept="image/*">
                             <button type="button" class="btn btn-outline-primary mt-3" onclick="document.getElementById('avatar-input').click()">Change Profile Picture</button>
-                        </form>
+                        </form> #}
                     </div>
                     <h3>{{ user.name }}</h3>
                     <p class="text-muted">{{ user.title }}</p>
@@ -55,7 +59,8 @@
             <div class="col-md-8">
                 <div class="content-card"> <!-- Changed class -->
                     <h4 class="mb-4">Personal Information</h4>
-                    <form action="{{ url_for('update_profile') }}" method="POST">
+                    {# Corrected form action to point to the existing 'profile' route which handles POST for updates #}
+                    <form action="{{ url_for('profile') }}" method="POST">
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">Full Name</label>

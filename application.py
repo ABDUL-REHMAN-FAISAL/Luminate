@@ -23,7 +23,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False) # Renamed password to password_hash and increased length
     is_employer = db.Column(db.Boolean, default=False)
     company = db.Column(db.String(100))
     title = db.Column(db.String(100))
@@ -34,6 +34,12 @@ class User(db.Model):
     jobs = db.relationship('Job', backref='employer', lazy=True)
     applications = db.relationship('Application', backref='applicant', lazy=True)
     activities = db.relationship('Activity', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 
 class Job(db.Model):
@@ -125,7 +131,7 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
 
-        if user and user.password == password:
+        if user and user.check_password(password): # Use check_password method
             session['user_id'] = user.id
             session['is_employer'] = user.is_employer
             flash('Login successful!', 'success')
@@ -153,10 +159,10 @@ def register():
         user = User(
             name=name,
             email=email,
-            password=password,
             is_employer=is_employer,
             company=request.form.get('company') if is_employer else None
         )
+        user.set_password(password) # Use set_password method
 
         db.session.add(user)
         db.session.commit()
@@ -254,7 +260,8 @@ def dashboard():
 
     activities = Activity.query.filter_by(user_id=user.id).order_by(Activity.date.desc()).limit(5).all()
 
-    return render_template('dashboard.html',
+    # Corrected template name to match existing file
+    return render_template('job_search_home.html',
                            user=user,
                            applications=applications,
                            stats=stats,
@@ -432,17 +439,26 @@ def create_sample_data():
     with app.app_context():
         db.create_all()
 
-        # Create sample employer
-        if not User.query.filter_by(email='employer@example.com').first():
+        # Check if any user exists to prevent recreating sample data
+        if not User.query.first():
+            # Create sample employer
             employer = User(
                 name="Tech Company",
                 email="employer@example.com",
-                password="employer123",
                 is_employer=True,
                 company="Tech Solutions Inc.",
                 title="HR Manager"
             )
+            employer.set_password("employer123") # Hash password
             db.session.add(employer)
+            # db.session.flush() # Removed flush
+
+            # Need employer ID for jobs, commit temporarily or adjust logic
+            # For simplicity here, we'll commit before creating jobs that need the ID
+            # A better approach might involve deferred foreign key constraints or session management
+            db.session.commit() # Commit to get employer ID before creating jobs
+            # Re-fetch employer if needed, or rely on the session having the ID
+            employer = User.query.filter_by(email='employer@example.com').first()
 
             # Create sample jobs
             jobs = [
@@ -466,32 +482,41 @@ def create_sample_data():
                 )
             ]
             db.session.add_all(jobs)
+            # db.session.flush() # Removed flush
 
             # Create sample job seeker
             seeker = User(
                 name="John Doe",
                 email="seeker@example.com",
-                password="seeker123",
                 is_employer=False,
                 title="Software Developer",
                 skills="Python,JavaScript,HTML,CSS",
                 location="San Francisco",
                 phone="555-123-4567"
             )
+            seeker.set_password("seeker123") # Hash password
             db.session.add(seeker)
+            # db.session.flush() # Removed flush
+
+            # Commit again to get seeker and job IDs before creating applications/activities
+            db.session.commit()
+            # Re-fetch if necessary
+            seeker = User.query.filter_by(email='seeker@example.com').first()
+            job1 = Job.query.filter_by(title="Senior Frontend Developer", employer_id=employer.id).first()
+            job2 = Job.query.filter_by(title="Backend Engineer", employer_id=employer.id).first()
 
             # Create sample applications
             applications = [
                 Application(
                     user_id=seeker.id,
-                    job_id=jobs[0].id,
+                    job_id=job1.id,
                     status="Reviewing",
                     cover_letter="I have 5 years of experience with React...",
                     date_applied=datetime.utcnow() - timedelta(days=2)
                 ),
                 Application(
                     user_id=seeker.id,
-                    job_id=jobs[1].id,
+                    job_id=job2.id,
                     status="Pending",
                     cover_letter="I'm excited about this backend position...",
                     date_applied=datetime.utcnow() - timedelta(days=1)
@@ -503,14 +528,14 @@ def create_sample_data():
             activities = [
                 Activity(
                     user_id=seeker.id,
-                    job_id=jobs[0].id,
-                    message=f"Applied for {jobs[0].title} at {jobs[0].company}",
+                    job_id=job1.id,
+                    message=f"Applied for {job1.title} at {job1.company}",
                     date=datetime.utcnow() - timedelta(days=2)
                 ),
                 Activity(
                     user_id=seeker.id,
-                    job_id=jobs[1].id,
-                    message=f"Applied for {jobs[1].title} at {jobs[1].company}",
+                    job_id=job2.id,
+                    message=f"Applied for {job2.title} at {job2.company}",
                     date=datetime.utcnow() - timedelta(days=1)
                 ),
                 Activity(
@@ -521,7 +546,7 @@ def create_sample_data():
             ]
             db.session.add_all(activities)
 
-            db.session.commit()
+            db.session.commit() # Final commit for applications and activities
 
 
 if __name__ == '__main__':
