@@ -1,368 +1,325 @@
-/* Import Space Grotesk font if needed - assuming it's linked elsewhere or a system font */
+/* Global Variables */
+:root {
+    --primary-color: #8B5CF6;
+    --primary-hover: #7C3AED;
+    --secondary-color: #64b5f6;
+    --background-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+}
 
+/* Base Styles */
 body {
-    /* Revert to Space Grotesk */
     font-family: 'Space Grotesk', sans-serif;
-    background-color: #f8f9fa; /* Light background */
-    color: #333; /* Default text color */
+    background-color: var(--background-color);
+    color: var(--text-color);
     margin: 0;
-    padding-top: 56px; /* Add padding for fixed navbar if needed */
-    display: flex; /* Keep flex for footer */
-    flex-direction: column; /* Keep flex for footer */
-    min-height: 100vh; /* Keep flex for footer */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Headings will now inherit the body font */
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 700; /* Ensure headings are bold */
+    font-weight: 700;
 }
 
-/* Ensure buttons also use the body font */
 button, .btn {
     font-family: 'Space Grotesk', sans-serif;
 }
 
 .main-content {
-    flex: 1; /* Allows footer to stick to bottom */
-    padding-top: 1.5rem; /* Add some space below navbar */
-    padding-bottom: 3rem; /* Add space above footer */
+    flex: 1;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
 }
 
-/* --- Login Page Specific Styles --- */
+/* Animation Classes */
+.animate-fade-in {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.animate-pop-in {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.animate-fade-in.show, .animate-pop-in.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Content Cards */
+.content-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.content-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Interactive Cards */
+.interactive-card {
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.interactive-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+/* Form Elements */
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    font-family: 'Space Grotesk', sans-serif;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Login & Register Pages */
 .login-page-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     width: 100%;
+    background: linear-gradient(120deg, #f3e8ff 0%, #e0e7ff 100%);
 }
 
-.login-container {
+.login-container, .register-container {
     max-width: 450px;
     width: 100%;
-    background-color: #ffffff; /* White background for the box */
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-    margin: 20px; /* Add some margin */
+    background-color: white;
+    padding: 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin: 20px;
 }
 
-.login-container {
-    background-color: #ffffff; /* White background for the box */
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    /* Replaced by .content-card */
-    /* background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    padding: 1.5rem;
+.brand-logo {
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--primary-color);
+    letter-spacing: 2px;
     margin-bottom: 1.5rem;
-    border: 1px solid #e0e0e0; */
+    text-align: center;
 }
 
-/* --- General Content Card Style --- */
-.content-card {
-    background: white;
-    border-radius: 12px; /* Updated from dashboard.css */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Updated from styles.css general */
-    padding: 2rem; /* Updated from styles.css general */
+.login-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.fun-intro {
+    font-size: 1.05rem;
+    color: #6B7280;
+    text-align: center;
     margin-bottom: 1.5rem;
-    border: 1px solid #e0e0e0;
-    /* transition: all 0.3s ease; */ /* Handled globally */
 }
 
-.content-card:hover {
-    transform: translateY(-3px); /* Updated from styles.css general */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Updated from styles.css general */
+/* Role Toggle Switch */
+.role-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
 }
 
-/* Global transition for smoother effects */
-*,
-*::before,
-*::after {
-    transition: all 0.3s ease-in-out !important; /* Apply global transition */
+.role-label {
+    color: #6B7280;
+    font-weight: 500;
 }
 
-.content-card:hover {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Employer Dashboard Specific Styles --- */
-.employer-dashboard .content-card h3 {
-    margin-bottom: 0.5rem;
-}
-
-.candidate-card .skill-match {
-    background-color: #e9ecef;
-    border-radius: 0.25rem;
-    height: 8px;
-    overflow: hidden;
-}
-
-.candidate-card .skill-match-fill {
-    background-color: var(--bs-primary);
-    height: 100%;
-}
-
-/* --- Profile Page Specific Styles --- */
-.skill-badge {
+.switch {
+    position: relative;
     display: inline-block;
-    background-color: #e9ecef;
-    color: #495057;
-    padding: 0.3em 0.6em;
-    margin: 0.2em;
-    border-radius: 4px;
-    font-size: 0.9em;
+    width: 60px;
+    height: 34px;
 }
 
-/* --- Dashboard Specific Styles (Combined from dashboard.css, style.css, styles.css) --- */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
-/* Progress Bar Styles (from dashboard.css & style.css) */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #E5E7EB;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Landing Page */
+.landing-hero {
+    min-height: 70vh;
+    background: linear-gradient(120deg, #f3e8ff 0%, #e0e7ff 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+/* Dashboard Elements */
+.employer-dashboard-interactive, .employee-dashboard-interactive {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.4em 0.8em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-reviewing {
+    background-color: #cfe2ff;
+    color: #0a58ca;
+}
+
+.status-accepted {
+    background-color: #d1e7dd;
+    color: #146c43;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.status-applied {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Activity Feed */
+.activity-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 0.75rem;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Progress Bars */
 .progress {
     height: 8px;
     background-color: #e9ecef;
     border-radius: 4px;
     overflow: hidden;
-    margin-top: 0.5rem; /* Added margin */
-    margin-bottom: 1rem; /* Added margin */
-}
-
-.progress-bar {
-    /* transition: width 0.6s ease; */ /* Transition handled globally */
-    height: 100%; /* Added from style.css */
-}
-
-/* Specific progress bar colors (from dashboard.css) */
-.progress-bar.bg-success {
-    background-color: #198754 !important;
-}
-
-.progress-bar.bg-info {
-    background-color: #0dcaf0 !important;
-}
-
-.progress-bar.bg-primary {
-    background-color: #0d6efd !important;
-}
-
-/* Status Badge Styles (Combined) */
-.status-badge {
-    padding: 0.4em 0.8em; /* Updated from dashboard.css */
-    border-radius: 20px; /* Updated from dashboard.css */
-    font-size: 0.85em; /* Updated from dashboard.css */
-    font-weight: 500;
-    text-transform: capitalize;
-    display: inline-block; /* Added from dashboard.css */
-}
-
-/* Specific Statuses (Combined & Updated based on latest styles.css) */
-.status-pending { /* From dashboard.css & style.css & styles.css (line 448) */
-    background-color: #fff3cd; /* Bootstrap warning light */
-    color: #664d03; /* Bootstrap warning dark */
-}
-
-.status-reviewing { /* From dashboard.css & styles.css (line 300 & 433) */
-    background-color: #cfe2ff; /* Bootstrap info light */
-    color: #0a58ca; /* Bootstrap info dark */
-}
-
-.status-accepted { /* From dashboard.css & style.css & styles.css (line 305 & 438) */
-    background-color: #d1e7dd; /* Bootstrap success light */
-    color: #146c43; /* Bootstrap success dark */
-}
-
-.status-rejected { /* From dashboard.css & style.css & styles.css (line 310 & 443) */
-    background-color: #f8d7da; /* Bootstrap danger light */
-    color: #842029; /* Bootstrap danger dark */
-}
-
-.status-applied { /* From styles.css (line 315) - Keep as is if not in others */
-    background-color: #0d6efd; /* Primary */
-    color: white;
-}
-
-/* Activity Item Styles (Combined) */
-.activity-item {
-    padding: 0.75rem 0; /* Updated from dashboard.css */
-    border-bottom: 1px solid #e9ecef; /* Updated from dashboard.css */
-    margin-bottom: 0.75rem;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-/* Skill Rating Styles (from dashboard.css) */
-.skill-rating {
+    margin-top: 0.5rem;
     margin-bottom: 1rem;
 }
 
-.skill-rating .progress {
-    margin-top: 0.5rem;
-}
-
-/* Market Standing Card (from dashboard.css) */
-.market-stats .progress {
-    margin: 0.5rem 0 1rem;
-}
-
-
-/* --- Animations --- */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-    opacity: 0; /* Start hidden */
-}
-
-/* --- Footer --- */
-.footer {
-    background-color: #343a40; /* Dark background */
-    color: #adb5bd; /* Lighter text */
-    padding: 2rem 0;
-    margin-top: auto; /* Pushes footer to bottom */
-}
-
-.footer a {
-    color: #f8f9fa; /* White links */
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: #dee2e6; /* Lighter white on hover */
-    text-decoration: underline;
-}
-
-.footer .social-icons a {
-    color: #adb5bd;
-    font-size: 1.5rem;
-    margin-right: 1rem;
-    transition: color 0.2s ease;
-}
-
-.footer .social-icons a:hover {
-    color: #f8f9fa;
-}
-
-/* --- Utility Classes --- */
-.fw-bold { font-weight: 700 !important; }
-
-/* --- Table Styles (from style.css & styles.css) --- */
-.table {
-    width: 100%; /* from style.css */
-    margin-bottom: 1rem; /* from style.css */
-    color: #212529; /* from style.css */
-    vertical-align: top; /* from style.css */
-    border-color: #dee2e6; /* from style.css */
-    background-color: white; /* from styles.css */
-    border: 1px solid #dee2e6; /* from styles.css */
-}
-
-.table > :not(caption) > * > * { /* from style.css */
-    padding: 0.75rem;
-    border-bottom-width: 1px;
-}
-
-.table thead th { /* from styles.css */
-    background-color: #f8f9fa; /* Light header */
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-}
-
-.table tbody tr:hover { /* from styles.css */
-    background-color: #f1f3f5; /* Subtle hover */
-}
-
-/* Button Group (from style.css) */
-.btn-group {
-    display: flex;
-    gap: 0.5rem;
-}
-
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
-    /* Messaging styles removed */
-}
-
-/* Styles moved from employer_dashboard.html */
-:root {
-    --primary-color: #6f42c1; /* Using the purple from login */
-    --secondary-color: #64b5f6;
-    --border-color: #e0e0e0;
-}
-
-.employer-dashboard .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
-    background-color: #5a359a; /* Darker purple */
-}
-
-.employer-dashboard .btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .btn-outline-primary:hover {
-    background-color: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-}
-
-.employer-dashboard .candidate-card {
-    /* transition: all 0.3s ease; */ /* Handled globally */
-    cursor: pointer;
-}
-
-.employer-dashboard .candidate-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(111, 66, 193, 0.2);
-}
-
-.employer-dashboard .skill-match {
-    height: 8px;
-    border-radius: 4px;
-    background-color: #E5E7EB;
-    overflow: hidden;
-}
-
-.employer-dashboard .skill-match-fill {
-    height: 100%;
-    border-radius: 4px;
-    background-color: var(--primary-color);
-    /* transition: width 1s ease-in-out; */ /* Handled globally */
-}
-
-.employer-dashboard .badge {
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .badge:hover {
-    transform: translateY(-2px);
-}
-
-/* --- Profile Page Styles --- */
-/* .profile-section { */
-    /* Replaced by .content-card */
-/* } */
-
+/* Skill Badges */
 .skill-badge {
     display: inline-block;
-    background-color: #e9ecef; /* Light gray */
+    background-color: #e9ecef;
     color: #495057;
     padding: 0.3em 0.6em;
     margin: 0.2em;
@@ -370,318 +327,145 @@ button, .btn {
     font-size: 0.9em;
 }
 
-.skill-badge .btn-link {
-    text-decoration: none;
-    font-weight: bold;
-    margin-left: 5px;
+/* Job Listings */
+.job-card {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
 }
 
-/* --- Table Styles --- */
-
-.table {
-    background-color: white;
-    border: 1px solid #dee2e6;
-}
-
-.table thead th {
-    background-color: #f8f9fa; /* Light header */
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-}
-
-.table tbody tr:hover {
-    background-color: #f1f3f5; /* Subtle hover */
-}
-
-/* --- Status Badges --- */
-
-.status-badge {
-    padding: 0.3em 0.7em;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.status-reviewing {
-    background-color: #ffc107; /* Warning */
-    color: #333;
-}
-
-.status-accepted {
-    background-color: #198754; /* Success */
-    color: white;
-}
-
-.status-rejected {
-    background-color: #dc3545; /* Danger */
-    color: white;
-}
-
-.status-applied {
-    background-color: #0d6efd; /* Primary */
-    color: white;
-}
-
-.activity-item {
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 0.75rem;
-    margin-bottom: 0.75rem;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-/* --- Animations --- */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
-    opacity: 0; /* Start hidden */
-}
-
-/* --- Footer --- */
-.footer {
-    background-color: #343a40; /* Dark background */
-    color: #adb5bd; /* Lighter text */
-    padding: 2rem 0;
-    margin-top: auto; /* Pushes footer to bottom */
-}
-
-.footer a {
-    color: #f8f9fa; /* White links */
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: #dee2e6; /* Lighter white on hover */
-    text-decoration: underline;
-}
-
-.footer .social-icons a {
-    color: #adb5bd;
-    font-size: 1.5rem;
-    margin-right: 1rem;
-    transition: color 0.2s ease;
-}
-
-.footer .social-icons a:hover {
-    color: #f8f9fa;
-}
-
-/* --- Utility Classes --- */
-.fw-bold { font-weight: 700 !important; }
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
-    /* Messaging styles removed */
-}
-
-/* Styles moved from employer_dashboard.html */
-:root {
-    --primary-color: #6f42c1; /* Using the purple from login */
-    --secondary-color: #64b5f6;
-    --border-color: #e0e0e0;
-}
-
-.employer-dashboard .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
-    background-color: #5a359a; /* Darker purple */
-}
-
-.employer-dashboard .btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .btn-outline-primary:hover {
-    background-color: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-}
-
-.employer-dashboard .candidate-card {
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.employer-dashboard .candidate-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(111, 66, 193, 0.2);
-}
-
-.employer-dashboard .skill-match {
-    height: 8px;
-    border-radius: 4px;
-    background-color: #E5E7EB;
-    overflow: hidden;
-}
-
-.employer-dashboard .skill-match-fill {
-    height: 100%;
-    border-radius: 4px;
-    background-color: var(--primary-color);
-    transition: width 1s ease-in-out;
-}
-
-.employer-dashboard .badge {
-    transition: all 0.3s ease;
-}
-
-.employer-dashboard .badge:hover {
-    transform: translateY(-2px);
-}
-
-/* --- Profile Page Styles --- */
-/* .profile-section { */
-    /* Replaced by .content-card */
-/* } */
-
-.skill-badge {
-    display: inline-block;
-    background-color: #e9ecef; /* Light gray */
-    color: #495057;
-    padding: 0.3em 0.6em;
-    margin: 0.2em;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-.skill-badge .btn-link {
-    text-decoration: none;
-    font-weight: bold;
-    margin-left: 5px;
-}
-
-/* --- Table Styles --- */
-
-.table {
-    background-color: white;
-    border: 1px solid #dee2e6;
-}
-
-.table thead th {
-    background-color: #f8f9fa; /* Light header */
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-}
-
-.table tbody tr:hover {
-    background-color: #f1f3f5; /* Subtle hover */
-}
-
-/* --- Status Badges --- */
-
-.status-badge {
-    padding: 0.3em 0.7em;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.status-reviewing {
-    background-color: #cfe2ff; /* Bootstrap info light */
-    color: #0a58ca; /* Bootstrap info dark */
-}
-
-.status-accepted {
-    background-color: #d1e7dd; /* Bootstrap success light */
-    color: #146c43; /* Bootstrap success dark */
-}
-
-.status-rejected {
-    background-color: #f8d7da; /* Bootstrap danger light */
-    color: #842029; /* Bootstrap danger dark */
-}
-
-.status-pending {
-    background-color: #fff3cd; /* Bootstrap warning light */
-    color: #664d03; /* Bootstrap warning dark */
-}
-
-/* --- Footer --- */
-
-footer {
-    background-color: #e9ecef; /* Light background for footer */
-    padding: 1rem 0;
-    margin-top: auto; /* Pushes footer to bottom */
-    text-align: center;
-    font-size: 0.9em;
-    color: #6c757d;
-    border-top: 1px solid #dee2e6;
-}
-
-/* --- General Content Styles --- */
-
-.main-content {
-    flex: 1; /* Allows footer to stick to bottom */
-    padding-top: 1.5rem; /* Add some space below navbar */
-    padding-bottom: 3rem; /* Add space above footer */
-    width: 100%; /* Ensure main content takes full width */
-}
-
-/* General container for content sections like forms, profile info, etc. */
-.content-card {
-    background: white;
-    border-radius: 8px; /* Consistent radius */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow */
-    padding: 2rem; /* Consistent padding */
-    margin-bottom: 1.5rem;
-    border: 1px solid #e0e0e0;
-    transition: all 0.3s ease;
-}
-
-.content-card:hover {
+.job-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-hover);
 }
 
-.content-card h2,
-.content-card h3,
-.content-card h4 {
-    margin-bottom: 1.5rem; /* Space below headings inside cards */
-    color: #333;
-    font-weight: 600;
+/* Profile Elements */
+.avatar-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
 }
 
-/* Form container specific adjustments if needed */
-.form-container {
-    max-width: 700px; /* Max width for forms */
-    margin-left: auto;
-    margin-right: auto;
+.avatar-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* --- Dashboard Specific Styles (can be generalized if needed) --- */
-
-.skill-badge {
-    display: inline-block;
-    background-color: #e9ecef;
-    color: #495057;
-    padding: 0.3em 0.6em;
-    margin-right: 0.5em;
-    margin-bottom: 0.5em;
-    border-radius: 0.25rem;
-    font-size: 0.9em;
+.avatar-edit {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
-.footer {
-    padding: 1rem 0;
-    background-color: #e9ecef;
-    border-top: 1px solid #dee2e6;
-    margin-top: auto; /* Pushes footer to bottom */
+.avatar-edit:hover {
+    background: var(--primary-hover);
+    transform: scale(1.1);
+}
+
+/* Interview Elements */
+.interview-slot {
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+}
+
+.interview-slot:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(139, 92, 246, 0.05);
+}
+
+.interview-slot.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(139, 92, 246, 0.1);
+}
+
+/* Results Page */
+.match-percentage {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0 auto 1rem;
+}
+
+.match-percentage::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid #e9ecef;
+}
+
+.match-percentage::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid transparent;
+    border-top-color: var(--primary-color);
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .content-card, .login-container, .register-container {
+        padding: 1.5rem;
+    }
+
+    .match-percentage {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Utility Classes */
+.bg-purple-light {
+    background-color: rgba(139, 92, 246, 0.1);
+}
+
+.text-purple {
+    color: var(--primary-color);
+}
+
+.border-purple {
+    border-color: var(--primary-color);
 }

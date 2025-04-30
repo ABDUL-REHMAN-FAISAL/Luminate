@@ -1,33 +1,154 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}View Applications | {{ job.title }} | Luminate{% endblock %}
+
 {% block content %}
-<div class="container py-5"> <!-- Added container class -->
-    <div class="content-card"> <!-- Added content-card wrapper -->
-        <h2>Applications for {{ job.title }}</h2>
-        <table class="table table-striped"> <!-- Added Bootstrap table classes -->
-    <thead>
-        <tr>
-            <th>Applicant</th>
-            <th>Status</th>
-            <th>Date Applied</th>
-            <th>Resume</th>
-            <th>Cover Letter</th>
-            <th>Portfolio</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for application in applications %}
-        <tr>
-            <td>{{ application.user.name }}</td>
-            <td>{{ application.status }}</td>
-            <td>{{ application.date_applied.strftime('%Y-%m-%d') }}</td>
-            {# Corrected resume link to use url_for for static files #}
-            <td>{% if application.resume_path %}<a href="{{ url_for('static', filename='uploads/' + application.resume_path) }}" target="_blank">Download</a>{% else %}N/A{% endif %}</td>
-            <td>{% if application.cover_letter %}<a href="#" onclick="alert('{{ application.cover_letter|escape }}')">View</a>{% else %}N/A{% endif %}</td>
-            <td>{% if application.portfolio_url %}<a href="{{ application.portfolio_url }}" target="_blank">Portfolio</a>{% else %}N/A{% endif %}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-    </div> <!-- Closed content-card -->
-</div> <!-- Closed container -->
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb" class="animate-fade-in">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('employer_dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Applications for {{ job.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="content-card animate-fade-in">
+            <h1 class="h3 mb-4">Applications for {{ job.title }}</h1>
+
+            <div class="job-details mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Company:</strong> {{ job.company }}</p>
+                        <p><strong>Location:</strong> {{ job.location or 'Remote' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Posted on:</strong> {{ job.date_posted.strftime('%b %d, %Y') }}</p>
+                        <p><strong>Applications:</strong> {{ applications|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Application Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                                <tr>
+                                    <td>{{ application.applicant.name }}</td>
+                                    <td>{{ application.date_applied.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ application.status.lower() }}">
+                                            {{ application.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex">
+                                            <a href="#" class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#applicationModal{{ application.id }}">
+                                                View Details
+                                            </a>
+                                            {% if application.status != 'Interview Scheduled' %}
+                                                <a href="{{ url_for('schedule_interview', application_id=application.id) }}" class="btn btn-sm btn-primary">
+                                                    Schedule Interview
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ url_for('interviews') }}" class="btn btn-sm btn-success">
+                                                    View Interview
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Application Details Modal -->
+                                <div class="modal fade" id="applicationModal{{ application.id }}" tabindex="-1" aria-labelledby="applicationModalLabel{{ application.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="applicationModalLabel{{ application.id }}">Application from {{ application.applicant.name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><strong>Email:</strong> {{ application.applicant.email }}</p>
+                                                        <p><strong>Phone:</strong> {{ application.applicant.phone or 'Not provided' }}</p>
+                                                        <p><strong>Location:</strong> {{ application.applicant.location or 'Not provided' }}</p>
+                                                        <p><strong>Applied on:</strong> {{ application.date_applied.strftime('%b %d, %Y') }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p><strong>Professional Title:</strong> {{ application.applicant.title or 'Not provided' }}</p>
+                                                        <p><strong>Status:</strong>
+                                                            <span class="status-badge status-{{ application.status.lower() }}">
+                                                                {{ application.status }}
+                                                            </span>
+                                                        </p>
+                                                        {% if application.resume_path %}
+                                                            <p><strong>Resume:</strong> <a href="#">Download Resume</a></p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <hr>
+
+                                                <h6>Skills:</h6>
+                                                {% if application.applicant.skills %}
+                                                    <div class="mb-3">
+                                                        {% for skill in application.applicant.skills.split(',') %}
+                                                            <span class="skill-badge">{{ skill.strip() }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <p class="text-muted">No skills provided</p>
+                                                {% endif %}
+
+                                                {% if application.cover_letter %}
+                                                    <h6>Cover Letter:</h6>
+                                                    <div class="p-3 bg-light rounded mb-3">
+                                                        {{ application.cover_letter }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <div class="dropdown d-inline-block">
+                                                    <button class="btn btn-primary dropdown-toggle" type="button" id="statusDropdown{{ application.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Update Status
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ application.id }}">
+                                                        <li><a class="dropdown-item" href="#">Reviewing</a></li>
+                                                        <li><a class="dropdown-item" href="#">Accepted</a></li>
+                                                        <li><a class="dropdown-item" href="#">Rejected</a></li>
+                                                    </ul>
+                                                </div>
+                                                {% if application.status != 'Interview Scheduled' %}
+                                                    <a href="{{ url_for('schedule_interview', application_id=application.id) }}" class="btn btn-success">
+                                                        Schedule Interview
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5>No Applications Yet</h5>
+                    <p class="text-muted">There are no applications for this job yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
