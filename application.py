@@ -114,7 +114,7 @@ def calculate_match_percentage(user_skills, job_skills):
     user_skill_list = [skill.strip().lower() for skill in user_skills.split(',')] if user_skills else []
     job_skill_list = [skill.strip().lower() for skill in job_skills.split(',')] if job_skills else []
 
-    if not job_skill_list:
+    if not job_skill_list or not user_skill_list:
         return 0
 
     matching_skills = set(user_skill_list) & set(job_skill_list)
@@ -338,19 +338,89 @@ def dashboard():
 @app.route('/jobs')
 def jobs():
     query = request.args.get('q', '')
+    location = request.args.get('location', '')
+    date_posted = request.args.get('date_posted', '')
+    skills_match = request.args.get('skills_match', '')
+    sort = request.args.get('sort', 'newest')
 
+    # Base query
+    job_query = Job.query
+
+    # Apply filters
     if query:
-        # Simple search implementation
         search = f"%{query}%"
-        jobs = Job.query.filter(
+        job_query = job_query.filter(
             (Job.title.like(search)) |
             (Job.company.like(search)) |
+            (Job.description.like(search)) |
             (Job.required_skills.like(search))
-        ).order_by(Job.date_posted.desc()).all()
-    else:
-        jobs = Job.query.order_by(Job.date_posted.desc()).all()
+        )
 
-    return render_template('jobs.html', jobs=jobs)
+    if location:
+        job_query = job_query.filter(Job.location == location)
+
+    if date_posted:
+        days = int(date_posted)
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        job_query = job_query.filter(Job.date_posted >= cutoff_date)
+
+    # Get all available locations for dropdown
+    locations = db.session.query(Job.location).filter(Job.location != None, Job.location != '').distinct().all()
+    locations = [loc[0] for loc in locations]
+
+    # Sort results
+    if sort == 'newest':
+        job_query = job_query.order_by(Job.date_posted.desc())
+
+    # Get jobs
+    jobs = job_query.all()
+
+    # Calculate match percentage for logged-in job seekers
+    user_skills = None
+    similar_jobs = []
+
+    if 'user_id' in session and not session.get('is_employer'):
+        user = User.query.get(session['user_id'])
+        user_skills = user.skills
+
+        if user_skills:
+            # Calculate match percentage for each job
+            for job in jobs:
+                job.match_percentage = int(calculate_match_percentage(user_skills, job.required_skills))
+
+            # Filter by skills match if requested
+            if skills_match == '1':
+                jobs = [job for job in jobs if job.match_percentage > 0]
+
+            # Sort by match percentage if requested
+            if sort == 'match':
+                jobs.sort(key=lambda x: x.match_percentage, reverse=True)
+
+            # Get recommended similar jobs (top 3 matches not in current results)
+            if len(jobs) < 10:  # Only show recommendations if there aren't many results
+                all_jobs = Job.query.all()
+                job_matches = []
+
+                for job in all_jobs:
+                    if job not in jobs:  # Don't recommend jobs already in results
+                        match = int(calculate_match_percentage(user_skills, job.required_skills))
+                        if match > 30:  # Only recommend jobs with decent match
+                            job_matches.append({
+                                'id': job.id,
+                                'title': job.title,
+                                'company': job.company,
+                                'match_percentage': match
+                            })
+
+                # Sort by match percentage and take top 3
+                job_matches.sort(key=lambda x: x['match_percentage'], reverse=True)
+                similar_jobs = job_matches[:3]
+
+    return render_template('jobs.html',
+                           jobs=jobs,
+                           locations=locations,
+                           user_skills=user_skills,
+                           similar_jobs=similar_jobs)
 
 
 @app.route('/apply/<int:job_id>', methods=['GET', 'POST'])
@@ -597,4 +667,4 @@ def init_db():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
