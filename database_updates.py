@@ -10,10 +10,9 @@ def update_database():
         db.engine.execute('ALTER TABLE application ADD COLUMN IF NOT EXISTS interview_date DATETIME')
     except Exception as e:
         print(f"Error adding columns: {e}")
-
-    # Create new tables if they don't exist
+# Create new tables if they don't exist
     db.create_all()
     print("Database schema updated successfully!")
 
 if __name__ == '__main__':
-    update_database()
+        update_database()
