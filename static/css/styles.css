@@ -469,3 +469,103 @@ input:checked + .slider:before {
 .border-purple {
     border-color: var(--primary-color);
 }
+
+.stat-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Status colors */
+.status-pending {
+    background-color: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-reviewing {
+    background-color: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-interview {
+    background-color: #ffc107;
+    color: black;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-interview.scheduled {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.status-accepted {
+    background-color: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.status-rejected {
+    background-color: #dc3545;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* Analytics section colors */
+.bg-primary-soft {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+}
+
+.bg-success-soft {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.bg-warning-soft {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+/* Quick link card styling */
+.quick-link-card {
+    display: block;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.quick-link-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: #ddd;
+    text-decoration: none;
+    color: inherit;
+}
+
+.quick-link-card .icon-container {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #6f42c1;
+}

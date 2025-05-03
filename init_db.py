@@ -1,7 +1,6 @@
 from application import app, db
 import os
 
-
 def initialize_database():
     """Initialize the database and create necessary folders"""
     with app.app_context():
@@ -16,7 +15,6 @@ def initialize_database():
             print(f"Created uploads folder: {uploads_folder}")
 
         print("Database initialized successfully.")
-
 
 if __name__ == "__main__":
     initialize_database()

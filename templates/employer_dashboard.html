@@ -109,22 +109,14 @@
                         </div>
                     {% endfor %}
                 </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('all_activities') }}" class="text-primary">View All Activity</a>
+                </div>
             {% else %}
-                <p class="text-muted mb-0">No recent activity to display</p>
-            {% endif %}
-
-            <a href="#" class="btn btn-sm btn-outline-primary w-100 mt-3">View All Activity</a>
-        </div>
-
-        <div class="content-card mt-4 animate-fade-in">
-            <h2 class="h4 mb-3">Upcoming Interviews</h2>
-
-            {% if interviews > 0 %}
-                <p>You have {{ interviews }} scheduled interviews.</p>
-                <a href="{{ url_for('interviews') }}" class="btn btn-sm btn-outline-primary w-100">View Interview Schedule</a>
-            {% else %}
-                <p class="text-muted mb-0">No upcoming interviews scheduled.</p>
-                <a href="{{ url_for('manage_slots') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">Set Available Slots</a>
+                <div class="text-center py-4">
+                    <i class="bi bi-clock-history text-muted mb-3" style="font-size: 3rem;"></i>
+                    <p class="text-muted">No recent activity to display.</p>
+                </div>
             {% endif %}
         </div>
     </div>

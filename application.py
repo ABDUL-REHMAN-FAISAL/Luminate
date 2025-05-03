@@ -8,7 +8,9 @@ import random
 
 app = Flask(__name__)
 app.debug = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobs.db?check_same_thread=False'
+
+# PostgreSQL database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@localhost:5432/luminate'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-very-secure-secret-key-12345'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -226,16 +228,32 @@ def employer_dashboard():
         Application.job.has(employer_id=employer.id),
         Application.status == 'Interview Scheduled'
     ).count()
+    
+    # Get counts for analytics section
+    pending_count = Application.query.join(Job).filter(
+        Job.employer_id == employer.id,
+        Application.status == 'Pending'
+    ).count()
+    
+    reviewing_count = Application.query.join(Job).filter(
+        Job.employer_id == employer.id,
+        Application.status == 'Reviewing'
+    ).count()
 
     # Get recent activities
     activities = Activity.query.filter_by(user_id=employer.id).order_by(Activity.date.desc()).limit(4).all()
+    
+    today = datetime.utcnow()
 
     return render_template('employer_dashboard.html',
                            employer=employer,
                            jobs=jobs,
                            total_applications=total_applications,
                            interviews=interviews_scheduled,
-                           activities=activities)
+                           activities=activities,
+                           today=today,
+                           pending_count=pending_count,
+                           reviewing_count=reviewing_count)
 
 
 @app.route('/post_job', methods=['GET', 'POST'])
@@ -304,6 +322,55 @@ def analytics():
                            total_applications=total_applications)
 
 
+@app.route('/all_applications')
+def all_applications():
+    if 'user_id' not in session or not session.get('is_employer'):
+        flash('Please login as employer', 'danger')
+        return redirect(url_for('login'))
+
+    employer_id = session['user_id']
+    applications = Application.query.join(Job).filter(Job.employer_id == employer_id).order_by(Application.date_applied.desc()).all()
+    
+    return render_template('all_applications.html', applications=applications)
+
+
+@app.route('/update_application_status/<int:application_id>', methods=['POST'])
+def update_application_status(application_id):
+    if 'user_id' not in session or not session.get('is_employer'):
+        flash('Please login as employer', 'danger')
+        return redirect(url_for('login'))
+    
+    application = Application.query.get_or_404(application_id)
+    job = Job.query.get(application.job_id)
+    
+    # Ensure the employer owns this job
+    if job.employer_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('employer_dashboard'))
+    
+    new_status = request.form.get('status')
+    if new_status in ['Pending', 'Reviewing', 'Accepted', 'Rejected']:
+        application.status = new_status
+        db.session.commit()
+        flash('Application status updated successfully', 'success')
+    
+    return redirect(url_for('all_applications'))
+
+
+@app.route('/all_activities')
+def all_activities():
+    if 'user_id' not in session or not session.get('is_employer'):
+        flash('Please login as employer', 'danger')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    activities = Activity.query.filter_by(user_id=user_id).order_by(Activity.date.desc()).all()
+    
+    today = datetime.utcnow()
+    
+    return render_template('all_activities.html', activities=activities, today=today)
+
+
 # Job Seeker Routes
 @app.route('/dashboard')
 def dashboard():
@@ -327,12 +394,15 @@ def dashboard():
     }
 
     recent_activities = Activity.query.filter_by(user_id=user.id).order_by(Activity.date.desc()).limit(4).all()
+    
+    today = datetime.utcnow()
 
     return render_template('employee_dashboard.html',
                            user=user,
                            applications=applications,
                            stats=stats,
-                           recent_activities=recent_activities)
+                           recent_activities=recent_activities,
+                           today=today)
 
 
 @app.route('/jobs')
@@ -343,9 +413,9 @@ def jobs():
         # Simple search implementation
         search = f"%{query}%"
         jobs = Job.query.filter(
-            (Job.title.like(search)) |
-            (Job.company.like(search)) |
-            (Job.required_skills.like(search))
+            (Job.title.ilike(search)) |
+            (Job.company.ilike(search)) |
+            (Job.required_skills.ilike(search))
         ).order_by(Job.date_posted.desc()).all()
     else:
         jobs = Job.query.order_by(Job.date_posted.desc()).all()
@@ -353,199 +423,242 @@ def jobs():
     return render_template('jobs.html', jobs=jobs)
 
 
+@app.route('/job/<int:job_id>')
+def job_detail(job_id):
+    job = Job.query.get_or_404(job_id)
+    
+    # Calculate match percentage if user is logged in
+    match_percentage = 0
+    if 'user_id' in session and not session.get('is_employer'):
+        user = User.query.get(session['user_id'])
+        match_percentage = calculate_match_percentage(user.skills, job.required_skills)
+    
+    return render_template('job_detail.html', job=job, match_percentage=match_percentage)
+
+
 @app.route('/apply/<int:job_id>', methods=['GET', 'POST'])
 def apply(job_id):
-    if 'user_id' not in session or session.get('is_employer'):
-        flash('Please login as job seeker', 'danger')
+    if 'user_id' not in session:
+        flash('Please login to apply for jobs', 'info')
         return redirect(url_for('login'))
-
+    
+    if session.get('is_employer'):
+        flash('Employer accounts cannot apply for jobs', 'warning')
+        return redirect(url_for('jobs'))
+    
     job = Job.query.get_or_404(job_id)
-    user = User.query.get(session['user_id'])
-
+    
     if request.method == 'POST':
-        # Check if already applied
-        existing_application = Application.query.filter_by(
-            user_id=user.id,
-            job_id=job.id
-        ).first()
-
-        if existing_application:
-            flash('You have already applied to this job', 'warning')
+        try:
+            user_id = session['user_id']
+            
+            # Check if already applied
+            existing_application = Application.query.filter_by(user_id=user_id, job_id=job_id).first()
+            if existing_application:
+                flash('You have already applied for this job', 'info')
+                return redirect(url_for('jobs'))
+            
+            # Resume upload
+            resume_path = None
+            if 'resume' in request.files:
+                resume_file = request.files['resume']
+                if resume_file and allowed_file(resume_file.filename):
+                    filename = secure_filename(f"{user_id}_{job_id}_{resume_file.filename}")
+                    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                    resume_path = os.path.join('uploads', filename)
+                    resume_file.save(os.path.join('static', resume_path))
+            
+            # Create application
+            application = Application(
+                user_id=user_id,
+                job_id=job_id,
+                status='Pending',
+                resume_path=resume_path,
+                cover_letter=request.form.get('coverLetter', '')
+            )
+            
+            db.session.add(application)
+            
+            # Create activity for both user and employer
+            create_activity(user_id, f"Applied for {job.title} at {job.company}")
+            create_activity(job.employer_id, f"New application for {job.title}", job_id)
+            
+            db.session.commit()
+            flash('Your application was submitted successfully!', 'success')
             return redirect(url_for('dashboard'))
-
-        resume_path = user.resume_path
-
-        # Handle resume upload if provided
-        if 'resume' in request.files and request.files['resume'].filename:
-            file = request.files['resume']
-            if file and allowed_file(file.filename):
-                filename = secure_filename(f"resume_{user.id}_{file.filename}")
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                resume_path = filename
-
-        application = Application(
-            user_id=user.id,
-            job_id=job.id,
-            resume_path=resume_path,
-            cover_letter=request.form.get('coverLetter', '')
-        )
-
-        db.session.add(application)
-
-        # Create activity for both job seeker and employer
-        create_activity(user.id, f"Applied for {job.title} at {job.company}", job.id)
-        create_activity(job.employer_id, f"New application from {user.name} for {job.title}", job.id)
-
-        db.session.commit()
-
-        flash('Application submitted successfully!', 'success')
-        return redirect(url_for('dashboard'))
-
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return redirect(url_for('apply', job_id=job_id))
+    
     return render_template('apply.html', job=job)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if 'user_id' not in session:
-        flash('Please login to view profile', 'danger')
+        flash('Please login', 'danger')
         return redirect(url_for('login'))
-
+    
     user = User.query.get(session['user_id'])
-
+    
     if request.method == 'POST':
-        # Update user profile
-        user.name = request.form.get('name')
-        user.email = request.form.get('email')
-        user.title = request.form.get('title')
-        user.phone = request.form.get('phone')
-        user.location = request.form.get('location')
-        user.skills = request.form.get('skills')
-
-        # Profile image upload handling
-        if 'profile_image' in request.files and request.files['profile_image'].filename:
-            profile_image = request.files['profile_image']
-            if profile_image and allowed_file(profile_image.filename, ['jpg', 'jpeg', 'png']):
-                filename = secure_filename(f"profile_{user.id}_{profile_image.filename}")
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                profile_image.save(file_path)
-                user.profile_image = filename
-
-        # Resume upload handling
-        if 'resume' in request.files and request.files['resume'].filename:
-            file = request.files['resume']
-            if file and allowed_file(file.filename, ['pdf', 'doc', 'docx']):
-                filename = secure_filename(f"resume_{user.id}_{file.filename}")
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                user.resume_path = filename
-
-        db.session.commit()
-        create_activity(user.id, "Updated profile information")
-        flash('Profile updated successfully!', 'success')
-
+        try:
+            user.name = request.form.get('name')
+            user.email = request.form.get('email')
+            user.phone = request.form.get('phone')
+            user.location = request.form.get('location')
+            
+            if session.get('is_employer'):
+                user.company = request.form.get('company')
+            else:
+                user.title = request.form.get('title')
+                user.skills = request.form.get('skills')
+            
+            # Profile image upload
+            if 'profile_image' in request.files:
+                profile_image = request.files['profile_image']
+                if profile_image and allowed_file(profile_image.filename, {'jpg', 'jpeg', 'png'}):
+                    filename = secure_filename(f"profile_{user.id}_{profile_image.filename}")
+                    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    profile_image.save(file_path)
+                    user.profile_image = filename
+            
+            # Resume upload
+            if 'resume' in request.files:
+                resume = request.files['resume']
+                if resume and allowed_file(resume.filename):
+                    filename = secure_filename(f"resume_{user.id}_{resume.filename}")
+                    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    resume.save(file_path)
+                    user.resume_path = filename
+            
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('profile'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return redirect(url_for('profile'))
+    
     return render_template('profile.html', user=user)
 
 
-@app.route('/interviews')
-def interviews():
-    if 'user_id' not in session:
-        flash('Please login to view interviews', 'danger')
-        return redirect(url_for('login'))
-
-    user = User.query.get(session['user_id'])
-
-    if user.is_employer:
-        # For employers, show interviews they've scheduled
-        interviews = Interview.query.join(Application).join(Job).filter(Job.employer_id == user.id).all()
-    else:
-        # For job seekers, show their interviews
-        interviews = Interview.query.join(Application).filter(Application.user_id == user.id).all()
-
-    return render_template('interviews.html', interviews=interviews, user=user)
-
-
-@app.route('/interview/slots', methods=['GET', 'POST'])
+@app.route('/manage_slots', methods=['GET', 'POST'])
 def manage_slots():
     if 'user_id' not in session or not session.get('is_employer'):
         flash('Please login as employer', 'danger')
         return redirect(url_for('login'))
-
+    
+    employer_id = session['user_id']
+    
     if request.method == 'POST':
         start_time = datetime.strptime(request.form.get('start_time'), '%Y-%m-%dT%H:%M')
         end_time = datetime.strptime(request.form.get('end_time'), '%Y-%m-%dT%H:%M')
-
+        
         if start_time >= end_time:
             flash('End time must be after start time', 'danger')
             return redirect(url_for('manage_slots'))
-
+        
         slot = InterviewSlot(
-            employer_id=session['user_id'],
+            employer_id=employer_id,
             start_time=start_time,
             end_time=end_time
         )
-
+        
         db.session.add(slot)
         db.session.commit()
         flash('Interview slot added successfully', 'success')
-
-    slots = InterviewSlot.query.filter_by(employer_id=session['user_id']).all()
+        return redirect(url_for('manage_slots'))
+    
+    slots = InterviewSlot.query.filter_by(employer_id=employer_id).all()
     return render_template('interview_slots.html', slots=slots)
 
 
 @app.route('/schedule_interview/<int:application_id>', methods=['GET', 'POST'])
 def schedule_interview(application_id):
-    if 'user_id' not in session or not session.get('is_employer'):
-        flash('Please login as employer', 'danger')
+    if 'user_id' not in session:
+        flash('Please login', 'danger')
         return redirect(url_for('login'))
-
+    
     application = Application.query.get_or_404(application_id)
-
-    # Ensure employer owns the job associated with this application
-    if application.job.employer_id != session['user_id']:
+    
+    # Check if user is the employer who posted the job
+    if session.get('is_employer'):
+        job = Job.query.get(application.job_id)
+        if job.employer_id != session['user_id']:
+            flash('Unauthorized access', 'danger')
+            return redirect(url_for('employer_dashboard'))
+    # Check if user is the applicant
+    elif application.user_id != session['user_id']:
         flash('Unauthorized access', 'danger')
-        return redirect(url_for('employer_dashboard'))
-
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         slot_id = request.form.get('slot_id')
         slot = InterviewSlot.query.get(slot_id)
-
-        if not slot or slot.is_booked:
-            flash('Invalid or already booked slot selected', 'danger')
+        
+        if slot.is_booked:
+            flash('This slot is already booked', 'danger')
             return redirect(url_for('schedule_interview', application_id=application_id))
-
-        # Create interview
+        
         interview = Interview(
             slot_id=slot_id,
             application_id=application_id,
-            meeting_link=request.form.get('meeting_link', '')
+            meeting_link=f"https://meet.luminate.com/{slot_id}",  # Placeholder
+            notes=""
         )
-
-        # Mark slot as booked
+        
         slot.is_booked = True
-
-        # Update application status
         application.status = 'Interview Scheduled'
-        application.interview_date = slot.start_time
-
+        
         db.session.add(interview)
-
+        
         # Create activities
-        create_activity(session['user_id'], f"Scheduled interview with {application.applicant.name}",
-                        application.job_id)
-        create_activity(application.user_id, f"Interview scheduled for {application.job.title} position",
-                        application.job_id)
-
+        create_activity(application.user_id, f"Interview scheduled for {application.job.title}")
+        create_activity(application.job.employer_id, f"Interview scheduled with {application.applicant.name}", application.job_id)
+        
         db.session.commit()
         flash('Interview scheduled successfully', 'success')
-
+        
+        if session.get('is_employer'):
+            return redirect(url_for('view_applications', job_id=application.job_id))
+        else:
+            return redirect(url_for('interviews'))
+    
     # Get available slots
-    slots = InterviewSlot.query.filter_by(employer_id=session['user_id'], is_booked=False).all()
-
-    # Check if interview already exists
+    if session.get('is_employer'):
+        slots = InterviewSlot.query.filter_by(employer_id=session['user_id'], is_booked=False).all()
+    else:
+        job = Job.query.get(application.job_id)
+        slots = InterviewSlot.query.filter_by(employer_id=job.employer_id, is_booked=False).all()
+    
+    # Get existing interview if any
     interview = Interview.query.filter_by(application_id=application_id).first()
-
+    
     return render_template('schedule_interview.html', application=application, slots=slots, interview=interview)
+
+
+@app.route('/interviews')
+def interviews():
+    if 'user_id' not in session:
+        flash('Please login', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    if session.get('is_employer'):
+        # For employers - interviews for their jobs
+        interviews = Interview.query.join(Application).join(Job).filter(Job.employer_id == user_id).all()
+    else:
+        # For job seekers - interviews for their applications
+        interviews = Interview.query.join(Application).filter(Application.user_id == user_id).all()
+    
+    return render_template('interviews.html', interviews=interviews, user=User.query.get(user_id))
 
 
 @app.route('/results')
@@ -553,48 +666,40 @@ def results():
     if 'user_id' not in session or session.get('is_employer'):
         flash('Please login as job seeker', 'danger')
         return redirect(url_for('login'))
-
+    
     user = User.query.get(session['user_id'])
-
-    # Get all jobs
-    jobs = Job.query.all()
-    matches = []
-
-    if user.skills:
-        for job in jobs:
+    user_skills = [skill.strip().lower() for skill in user.skills.split(',')] if user.skills else []
+    
+    # Only recommend jobs where we have at least one matching skill
+    if user_skills:
+        recommended_jobs = []
+        all_jobs = Job.query.all()
+        
+        for job in all_jobs:
+            job_skills = [skill.strip().lower() for skill in job.required_skills.split(',')] if job.required_skills else []
             match_percentage = calculate_match_percentage(user.skills, job.required_skills)
+            
             if match_percentage > 0:
-                # Calculate matching and missing skills
-                user_skills = [s.strip().lower() for s in user.skills.split(',')]
-                job_skills = [s.strip().lower() for s in job.required_skills.split(',')]
-
                 matching_skills = list(set(user_skills) & set(job_skills))
                 missing_skills = list(set(job_skills) - set(user_skills))
-
-                matches.append({
+                
+                recommended_jobs.append({
                     'job': job,
-                    'match_percentage': int(match_percentage),
+                    'match_percentage': round(match_percentage),
                     'matching_skills': matching_skills,
                     'missing_skills': missing_skills
                 })
-
-    # Sort by match percentage (highest first)
-    matches.sort(key=lambda x: x['match_percentage'], reverse=True)
-
-    return render_template('results.html', matches=matches)
-
-
-# Create database and necessary folders before first request
-@app.before_first_request
-def init_db():
-    # Drop all tables and recreate
-    db.drop_all()
-    db.create_all()
-
-    # Create uploads folder if it doesn't exist
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+        
+        # Sort by match percentage (highest first)
+        recommended_jobs.sort(key=lambda x: x['match_percentage'], reverse=True)
+        
+        return render_template('results.html', matches=recommended_jobs)
+    else:
+        flash('Please add skills to your profile to get job recommendations', 'info')
+        return redirect(url_for('profile'))
 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
