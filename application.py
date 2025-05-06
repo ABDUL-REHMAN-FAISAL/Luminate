@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.debug = True
 
 # PostgreSQL database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin123@localhost:5432/luminate'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:abbi123@localhost:5432/luminate'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your-very-secure-secret-key-12345'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -600,7 +600,7 @@ def schedule_interview(application_id):
     # Check if user is the employer who posted the job
     if session.get('is_employer'):
         job = Job.query.get(application.job_id)
-        if job.employer_id != session['user__id']:
+        if job.employer_id != session.get('user_id'):
             flash('Unauthorized access', 'danger')
             return redirect(url_for('employer_dashboard'))
     # Check if user is the applicant
