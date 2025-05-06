@@ -93,6 +93,8 @@ class Interview(db.Model):
     status = db.Column(db.String(20), default='Scheduled')
     notes = db.Column(db.Text)
     meeting_link = db.Column(db.String(200))
+    application = db.relationship('Application', backref='interviews')
+    slot = db.relationship('InterviewSlot', backref='interviews')
 
 
 # Helper Functions
@@ -229,6 +231,13 @@ def employer_dashboard():
         Application.status == 'Interview Scheduled'
     ).count()
     
+    # Get scheduled interview details for employer's jobs
+    scheduled_interviews = db.session.query(Interview, Application, Job, User).\
+        join(Application, Interview.application_id == Application.id).\
+        join(Job, Application.job_id == Job.id).\
+        join(User, Application.user_id == User.id).\
+        filter(Job.employer_id == employer.id).all()
+    
     # Get counts for analytics section
     pending_count = Application.query.join(Job).filter(
         Job.employer_id == employer.id,
@@ -250,6 +259,7 @@ def employer_dashboard():
                            jobs=jobs,
                            total_applications=total_applications,
                            interviews=interviews_scheduled,
+                           scheduled_interviews=scheduled_interviews,
                            activities=activities,
                            today=today,
                            pending_count=pending_count,
@@ -590,7 +600,7 @@ def schedule_interview(application_id):
     # Check if user is the employer who posted the job
     if session.get('is_employer'):
         job = Job.query.get(application.job_id)
-        if job.employer_id != session['user_id']:
+        if job.employer_id != session['user__id']:
             flash('Unauthorized access', 'danger')
             return redirect(url_for('employer_dashboard'))
     # Check if user is the applicant
@@ -650,13 +660,17 @@ def interviews():
         return redirect(url_for('login'))
     
     user_id = session['user_id']
-    
+    from sqlalchemy.orm import joinedload
     if session.get('is_employer'):
         # For employers - interviews for their jobs
-        interviews = Interview.query.join(Application).join(Job).filter(Job.employer_id == user_id).all()
+        interviews = Interview.query.join(Application).join(Job)\
+            .options(joinedload(Interview.slot), joinedload(Interview.application).joinedload(Application.job))\
+            .filter(Job.employer_id == user_id).all()
     else:
         # For job seekers - interviews for their applications
-        interviews = Interview.query.join(Application).filter(Application.user_id == user_id).all()
+        interviews = Interview.query.join(Application)\
+            .options(joinedload(Interview.slot), joinedload(Interview.application).joinedload(Application.job))\
+            .filter(Application.user_id == user_id).all()
     
     return render_template('interviews.html', interviews=interviews, user=User.query.get(user_id))
 

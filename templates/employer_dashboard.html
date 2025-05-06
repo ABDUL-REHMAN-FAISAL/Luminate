@@ -23,7 +23,7 @@
             </div>
             <h3 class="h5">Applications</h3>
             <p class="display-5 fw-bold text-purple">{{ total_applications }}</p>
-            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+            <a href="{{ url_for('all_applications') }}" class="btn btn-sm btn-outline-primary">View All</a>
         </div>
     </div>
     <div class="col-md-3 mb-4">
@@ -33,7 +33,7 @@
             </div>
             <h3 class="h5">Interviews</h3>
             <p class="display-5 fw-bold text-purple">{{ interviews }}</p>
-            <a href="{{ url_for('interviews') }}" class="btn btn-sm btn-outline-primary">Schedule</a>
+            <a href="{{ url_for('interviews') }}" class="btn btn-sm btn-outline-primary">View All</a>
         </div>
     </div>
     <div class="col-md-3 mb-4">
@@ -94,6 +94,49 @@
                 </div>
             {% endif %}
         </div>
+        <!-- Scheduled Interviews Section -->
+        <div class="content-card animate-fade-in mt-4">
+            <h2 class="h4 mb-3">Scheduled Interviews</h2>
+            {% if scheduled_interviews and scheduled_interviews|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Job Title</th>
+                                <th>Interview Time</th>
+                                <th>Status</th>
+                                <th>Meeting Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview, application, job, user in scheduled_interviews %}
+                                <tr>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ job.title }}</td>
+                                    <td>{{ interview.slot.start_time.strftime('%b %d, %Y %I:%M %p') if interview.slot and interview.slot.start_time else 'N/A' }}</td>
+                                    <td>{{ interview.status }}</td>
+                                    <td>
+                                        {% if interview.meeting_link %}
+                                            <a href="{{ interview.meeting_link }}" target="_blank">Join</a>
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-calendar-check text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5>No Scheduled Interviews</h5>
+                    <p class="text-muted">No interviews have been scheduled for your jobs yet.</p>
+                </div>
+            {% endif %}
+        </div>
+        <!-- End Scheduled Interviews Section -->
     </div>
 
     <div class="col-md-4 mb-4">

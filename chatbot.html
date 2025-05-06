@@ -1,0 +1,61 @@
+{% extends 'base.html' %} {% block title %}Chatbot - Job Recommendation{%
+endblock %} {% block content %}
+<div class="container py-5">
+  <div class="content-card form-container">
+    <h2 class="text-center mb-4">Job Recommendation Chatbot</h2>
+
+    <form id="chatForm">
+      <div class="mb-4">
+        <label for="message" class="form-label">Enter Your Skills</label>
+        <input
+          type="text"
+          class="form-control"
+          id="message"
+          name="message"
+          placeholder="e.g. Python, JavaScript, SQL"
+          required
+        />
+        <div class="form-text">Separate skills with commas</div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-success btn-lg">Ask Bot</button>
+      </div>
+    </form>
+
+    <div class="mt-4 alert alert-info d-none" id="responseBox">
+      <strong>Chatbot:</strong> <span id="responseText"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("chatForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const message = document.getElementById("message").value;
+      const responseBox = document.getElementById("responseBox");
+      const responseText = document.getElementById("responseText");
+
+      try {
+        const res = await fetch("/chatbot", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await res.json();
+        responseText.innerText = data.response;
+        responseBox.classList.remove("d-none");
+      } catch (error) {
+        responseText.innerText = "Something went wrong. Please try again.";
+        responseBox.classList.remove("d-none");
+        responseBox.classList.replace("alert-info", "alert-danger");
+      }
+    });
+</script>
+{% endblock %}

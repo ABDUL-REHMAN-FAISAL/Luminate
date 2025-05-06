@@ -2,6 +2,7 @@ from application import db, User, Job, Application, Activity, InterviewSlot, Int
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 import random
+import csv
 
 
 def add_sample_data():
@@ -220,6 +221,50 @@ def add_sample_data():
     db.session.commit()
 
     print("Sample data added successfully.")
+
+
+def import_jobs_from_csv(csv_path, employer_id=None):
+    """Import jobs from a CSV file into the Job table. If employer_id is None, assign to a default employer."""
+    from application import Job, db, User
+    from datetime import datetime
+    
+    # Find or create a default employer if not provided
+    if employer_id is None:
+        employer = User.query.filter_by(email="imported_jobs@luminate.com").first()
+        if not employer:
+            employer = User(
+                name="Imported Jobs",
+                email="imported_jobs@luminate.com",
+                is_employer=True,
+                company="Imported Jobs",
+                phone="N/A",
+                location="N/A"
+            )
+            employer.set_password("imported123")
+            db.session.add(employer)
+            db.session.commit()
+        employer_id = employer.id
+
+    with open(csv_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        count = 0
+        for row in reader:
+            # Map CSV columns to Job fields
+            job = Job(
+                title=row.get('Job Title', '').strip(),
+                company=row.get('Industry', '').strip() or "Imported Company",
+                description=row.get('Role Category', '').strip() or row.get('Functional Area', '').strip() or "No description provided.",
+                required_skills=row.get('Key Skills', '').replace('|', ',').strip(),
+                location=row.get('Location', '').strip(),
+                salary=row.get('Job Salary', '').strip(),
+                date_posted=datetime.strptime(row.get('Crawl Timestamp', '').split(' ')[0], '%Y-%m-%d') if row.get('Crawl Timestamp') else datetime.utcnow(),
+                employer_id=employer_id
+            )
+            # Optionally, add a flag for imported jobs if you add such a column
+            db.session.add(job)
+            count += 1
+        db.session.commit()
+        print(f"Imported {count} jobs from {csv_path}")
 
 
 if __name__ == "__main__":
